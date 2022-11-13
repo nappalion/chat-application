@@ -11,13 +11,19 @@ Michael Holzer
 import socket
 import select
 
-# Grab the host dynamically (changes for each PC)
+# Code to grab the host dynamically (changes for each PC):
 # HOST = socket.gethostbyname(socket.gethostname())
+
+# Chat room runs locally and on a port that's not taken
 HOST = 'localhost'
-RECV_BUFFER = 4096
 PORT = 12000
 
+RECV_BUFFER = 4096
+
+# Server keeps track of all the sockets that are connected
 socketList = []
+
+# Dictionary to hold the username for each client socket
 clients = {}
 
 def server():
@@ -39,6 +45,7 @@ def server():
   print(f'Server listening on {HOST}:{PORT}...')
 
   while True:
+    # Get a list of the sockets that are ready to read
     read, write, error = select.select(socketList, [], socketList)
 
     for sock in read:
@@ -47,14 +54,18 @@ def server():
         # Wait for incoming connections and return socket for communication and address when found
         clientSocket, clientAddress = serverSocket.accept()
 
-        # Add the socket to the list of connected sockets so the server can send messages globally
+        # Add the socket to the list of connected sockets so the client can receive messages from the server/other clients
         socketList.append(clientSocket)
 
+        # When the client connects, wait for their username to be sent
         username = clientSocket.recv(RECV_BUFFER)
 
+        # If they didn't send a username then they disconnected, so remove the current socket
         if username is False:
+          socketList.remove(clientSocket)
           continue
 
+        # Add the username to the dictionary
         clients[clientSocket] = username.decode("utf-8")
 
         # Server prints which clients are connected to the console
@@ -68,6 +79,7 @@ def server():
 
       # New message from a client has been received
       else:
+        # If a client has sent a message, then we print it on the server and for each client
         try:
           data = sock.recv(RECV_BUFFER)
 
@@ -75,6 +87,7 @@ def server():
             sendMessage(serverSocket, sock, f'{clients[sock]}: ' + str(data.decode("utf-8")) + '\n')
             print(f'{clients[sock]}: ' + str(data.decode("utf-8")))
  
+          # If the data was invalid then the client has disconnected
           else:
             if(sock in socketList):
               socketList.remove(sock)
@@ -82,6 +95,7 @@ def server():
             sendMessage(serverSocket, sock, f"Client {clients[sock]} at {clientAddress[0], clientAddress[1]} is offline\n")
             break
 
+        # If the data was invalid then the client has disconnected
         except:
           if(sock in socketList):
             socketList.remove(sock)
@@ -91,9 +105,9 @@ def server():
 
   serverSocket.close()
 
+# Broadcast to all connected sockets except the current and server sockets
 def sendMessage(serverSock, currSock, message):
   global socketList, clients
-  # Broadcast to all connected sockets except the current socket
   for socket in socketList:
     if socket != currSock and socket != serverSock:
       try:
