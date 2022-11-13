@@ -17,7 +17,12 @@ HOST = 'localhost'
 RECV_BUFFER = 4096
 PORT = 12000
 
+socketList = []
+clients = {}
+
 def server():
+  global socketList, clients
+
   # Create an internet type TCP socket
   serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -45,11 +50,18 @@ def server():
         # Add the socket to the list of connected sockets so the server can send messages globally
         socketList.append(clientSocket)
 
+        username = clientSocket.recv(RECV_BUFFER)
+
+        if username is False:
+          continue
+
+        clients[clientSocket] = username.decode("utf-8")
+
         # Server prints which clients are connected to the console
-        print(f'Client {clientAddress[0], clientAddress[1]} connected.')
+        print(f'Client {username.decode("utf-8")} at {clientAddress[0], clientAddress[1]} connected.')
 
         # Notify other connected clients of new socket connections
-        sendMessage(serverSocket, clientSocket, "(%s, %s) entered the chatting room\n" % clientAddress, socketList)
+        sendMessage(serverSocket, clientSocket, f"Client {username.decode('utf-8')} at {clientAddress[0], clientAddress[1]} entered the chatting room.\n")
 
         # Notify new client that they've been connected to the server
         clientSocket.send("Connected to the server!\n".encode("utf-8"))
@@ -60,26 +72,27 @@ def server():
           data = sock.recv(RECV_BUFFER)
 
           if(data):
-            sendMessage(serverSocket, sock, 'New Message: ' + str(data.decode("utf-8")) + '\n', socketList)
-            print('Received message: ' + str(data.decode("utf-8")))
+            sendMessage(serverSocket, sock, f'{clients[sock]}: ' + str(data.decode("utf-8")) + '\n')
+            print(f'{clients[sock]}: ' + str(data.decode("utf-8")))
  
           else:
             if(sock in socketList):
               socketList.remove(sock)
-            print("Client (%s, %s) disconnected\n" % clientAddress)
-            sendMessage(serverSocket, sock, "Client (%s, %s) is offline\n" % clientAddress, socketList)
+            print(f"Client {clients[sock]} at {clientAddress[0], clientAddress[1]} has disconnected.\n")
+            sendMessage(serverSocket, sock, f"Client {clients[sock]} at {clientAddress[0], clientAddress[1]} is offline\n")
             break
 
         except:
           if(sock in socketList):
             socketList.remove(sock)
-          print("Client (%s, %s) disconnected\n" % clientAddress)
-          sendMessage(serverSocket, sock, "Client (%s, %s) is offline\n" % clientAddress, socketList)
+          print(f"Client {clients[sock]} at {clientAddress[0], clientAddress[1]} has disconnected.\n")
+          sendMessage(serverSocket, sock, f"Client {clients[sock]} at {clientAddress[0], clientAddress[1]} is offline\n")
           break
 
   serverSocket.close()
 
-def sendMessage(serverSock, currSock, message, socketList):
+def sendMessage(serverSock, currSock, message):
+  global socketList, clients
   # Broadcast to all connected sockets except the current socket
   for socket in socketList:
     if socket != currSock and socket != serverSock:

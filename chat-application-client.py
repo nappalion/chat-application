@@ -23,6 +23,9 @@ def client():
 
     clientSocket.setblocking(False)
 
+    username = input("Username: ")
+    clientSocket.send(username.encode("utf-8"))
+
     while True:
         message = input("Me: ")
         if message:
