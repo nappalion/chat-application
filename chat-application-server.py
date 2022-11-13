@@ -3,7 +3,7 @@ import sys
 import select
 
 RECV_BUFFER = 4096
-port = 80
+port = 12000
 socketList = []
 
 def sendMessage(serverSocket, sock, message):
@@ -37,9 +37,9 @@ def server():
 
         sockOb, address = serverSocket.accept()
         socketList.append(sockOb)
-        print("Client %s connected" % address)
+        print("Client %s, %s connected" % address)
 
-        sendMessage(serverSocket, sockOb, "%s entered the chatting room\n" % address)
+        sendMessage(serverSocket, sockOb, "%s, %s entered the chatting room\n" % address)
 
       else:
 
@@ -53,10 +53,10 @@ def server():
             if(sock in socketList):
               socketList.remove(sock)
 
-            sendMessage(serverSocket, sock, "Client %s is offline\n" % address)
+            sendMessage(serverSocket, sock, "Client %s, %s is offline\n" % address)
 
         except:
-          sendMessage(serverSocket, sock, "Client %s is offline\n" % address)
+          sendMessage(serverSocket, sock, "Client %s, %s is offline\n" % address)
           continue
 
   serverSocket.close()
