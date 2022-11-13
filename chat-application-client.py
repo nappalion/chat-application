@@ -1,39 +1,44 @@
+'''
+Chatterbox Client-Server Application - Client  Code
+CS3800
+
+Members:
+Richard Medina
+Napoleon Torrico
+Michael Holzer
+'''
+
 import sys
 import socket
-import select
+
+RECV_BUFFER = 4096
 
 def client():
-    host = input("Host name: ")
-    port = int(input("Port number: "))
+    HOST = 'localhost' #input("Host name: ")
+    PORT = 12000 #int(input("Port number: "))
 
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    clientSocket.settimeout(2)
 
-    try:
-        clientSocket.connect((host, port))
-    except:
-        print("Unable to connect.")
-        sys.exit()
+    clientSocket.connect((HOST, PORT))
 
-    print("Connected to host " + str(host) + ". Try sending a message.")
-    msg = input("Message: ")
+    clientSocket.setblocking(False)
+
     while True:
-        socketList = [clientSocket]
+        message = input("Me: ")
+        if message:
+            clientSocket.send(message.encode("utf-8"))
+        
+        try:
+            while True:
+                message = clientSocket.recv(RECV_BUFFER).decode("utf-8")
+                print(f"{message}")
 
-        read, write, error = select.select(socketList, [], [])
+        except:
+            # No messages
+            pass
+            
 
-        for sock in read:
-            if sock == clientSocket:
-                data = sock.recv(4096)
-                if not data:
-                    print("Disconnected from server")
-                    sys.exit()
-                else:
-                    print("from some user: " + str(data.decode()))
-                    msg = input("Message: ")
-
-            else:
-                clientSocket.send(msg.encode())
+                
             
 
 if __name__ == "__main__":
