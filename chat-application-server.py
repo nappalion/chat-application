@@ -84,7 +84,7 @@ def server():
           data = sock.recv(RECV_BUFFER)
 
           if(data):
-            sendMessage(serverSocket, sock, f'{clients[sock]}: ' + str(data) + '\n')
+            sendMessage(serverSocket, sock, f'{clients[sock]}: ' + str(data.decode("utf-8")) + '\n')
             print(f'{clients[sock]}: ' + str(data.decode("utf-8")))
  
           # If the data was invalid then the client has disconnected

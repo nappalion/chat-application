@@ -17,8 +17,8 @@ def incomingMessages(clientSocket):
     while True:
         try:
             while True:
-                message = clientSocket.recv(RECV_BUFFER).decode("utf-8")
-                print(f"{str(message)}")
+                message = clientSocket.recv(RECV_BUFFER)
+                print(f"{str(message.decode('utf-8'))}")
 
         except:
             # No messages
@@ -41,7 +41,8 @@ def client():
     
     # Wait for any incoming messages from the server 
     # (either server or client messages)
-    thread = threading.Thread(target=incomingMessages, args=(clientSocket,), daemon=True).start()
+    # Use threading to bypass blocking from input command
+    threading.Thread(target=incomingMessages, args=(clientSocket,), daemon=True).start()
 
     # Continuously accept user input
     while True:
