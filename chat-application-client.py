@@ -9,8 +9,20 @@ Michael Holzer
 '''
 
 import socket
+import threading
 
 RECV_BUFFER = 4096
+
+def incomingMessages(clientSocket):
+    while True:
+        try:
+            while True:
+                message = clientSocket.recv(RECV_BUFFER).decode("utf-8")
+                print(f"{str(message)}")
+
+        except:
+            # No messages
+            pass
 
 def client():
     HOST = 'localhost' #input("Host name: ")
@@ -26,24 +38,16 @@ def client():
     # Send the username to the server
     username = input("Username: ")
     clientSocket.send(username.encode("utf-8"))
+    
+    # Wait for any incoming messages from the server 
+    # (either server or client messages)
+    thread = threading.Thread(target=incomingMessages, args=(clientSocket,), daemon=True).start()
 
+    # Continuously accept user input
     while True:
-        # Send current client's messages
-        message = input("Me: ")
+        message = input("")
         if message:
             clientSocket.send(message.encode("utf-8"))
-        
-        # Wait for any incoming messages from the server 
-        # (either server or client messages)
-        try:
-            while True:
-                message = clientSocket.recv(RECV_BUFFER).decode("utf-8")
-                print(f"{message}")
-
-        except:
-            # No messages
-            pass
-            
 
                 
             

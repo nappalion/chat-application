@@ -37,7 +37,7 @@ def server():
 
   serverSocket.bind((HOST, PORT))
 
-  # Server can accept a maximum of 10 connections
+  # Server listens for new connections
   serverSocket.listen(10)
 
   socketList = [serverSocket]
@@ -84,7 +84,7 @@ def server():
           data = sock.recv(RECV_BUFFER)
 
           if(data):
-            sendMessage(serverSocket, sock, f'{clients[sock]}: ' + str(data.decode("utf-8")) + '\n')
+            sendMessage(serverSocket, sock, f'{clients[sock]}: ' + str(data) + '\n')
             print(f'{clients[sock]}: ' + str(data.decode("utf-8")))
  
           # If the data was invalid then the client has disconnected
